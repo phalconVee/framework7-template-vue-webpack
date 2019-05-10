@@ -2,73 +2,52 @@
   <!-- App -->
   <f7-app :params="f7params">
 
-    <!-- Statusbar -->
-    <f7-statusbar></f7-statusbar>
+      <f7-statusbar></f7-statusbar>
 
-    <!-- Left Panel -->
-    <f7-panel left reveal theme-dark>
-      <f7-view url="/panel-left/"></f7-view>
-    </f7-panel>
+      <!-- Left Panel -->
+      <f7-panel left reveal>
+          <f7-view url="/panel-left/" links-view=".view-main"></f7-view>
+      </f7-panel>
 
-    <!-- Right Panel -->
-    <f7-panel right cover theme-dark>
-      <f7-view url="/panel-right/"></f7-view>
-    </f7-panel>
+      <!-- Right Panel -->
+      <f7-panel right cover>
+          <f7-view url="/panel-right/"></f7-view>
+      </f7-panel>
 
-    <!-- Main View -->
-    <f7-view id="main-view" url="/" main class="safe-areas"></f7-view>
-
-    <!-- Popup -->
-    <f7-popup id="popup">
-      <f7-view>
-        <f7-page>
-          <f7-navbar title="Popup">
-            <f7-nav-right>
-              <f7-link popup-close>Close</f7-link>
-            </f7-nav-right>
-          </f7-navbar>
-          <f7-block>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque, architecto. Cupiditate laudantium rem nesciunt numquam, ipsam. Voluptates omnis, a inventore atque ratione aliquam. Omnis iusto nemo quos ullam obcaecati, quod.</f7-block>
-        </f7-page>
-      </f7-view>
-    </f7-popup>
-
-    <!-- Login Screen -->
-    <f7-login-screen id="login-screen">
-      <f7-view>
-        <f7-page login-screen>
-          <f7-login-screen-title>Login</f7-login-screen-title>
-          <f7-list form>
-            <f7-list-input
-              label="Username"
-              name="username"
-              placeholder="Username"
-              type="text"
-            />
-            <f7-list-input
-              label="Password"
-              name="password"
-              type="password"
-              placeholder="Password"
-            />
-          </f7-list>
-          <f7-list>
-            <f7-list-button title="Sign In" login-screen-close></f7-list-button>
-            <f7-block-footer>
-              <p>Click Sign In to close Login Screen</p>
-            </f7-block-footer>
-          </f7-list>
-        </f7-page>
-      </f7-view>
-    </f7-login-screen>
+      <f7-view id="main-view" url="/" main class="safe-areas"></f7-view>
 
   </f7-app>
 </template>
 
 <script>
-// Import Routes
 import routes from './routes.js'
+import Auth from './store/auth'
+import Flash from './helpers/flash'
+import { post, interceptors } from './helpers/api'
+import constant from './helpers/constants'
 
 export default {
+    created() {
+        // global error http handler
+        interceptors((err) => {
+            if(err.response.status === 401) {
+                Auth.remove()
+                //this.$router.push('/login')
+                this.$f7router.navigate('/login')
+            }
+
+            if(err.response.status === 500) {
+                Flash.setError(err.response.statusText)
+            }
+
+            if(err.response.status === 404) {
+                //this.$router.push('/not-found')
+                this.$f7router.navigate('/not-found')
+            }
+        })
+        Auth.initialize()
+    },
+
   data() {
     return {
       // Framework7 parameters here
@@ -79,7 +58,54 @@ export default {
         // App routes
         routes: routes,
       },
+      authState: Auth.state,
+      flash: Flash.state
     }
-  }
+  },
+  computed: {
+        auth() {
+            if(this.authState.api_token) {
+                return true
+            }
+            return false
+        },
+        guest() {
+            return !this.auth
+        }
+    },
+    methods: {
+        /*logout() {
+            post(constant.server_url + 'logout', { user_id: Auth.state.user_id })
+                .then((res) => {
+                    if(res.data.done) {
+
+                        this.$swal("Are you sure you want to do this?", {
+                            buttons: ["Oh no!", true],
+                        }).then((willLogout) => {
+                            if(willLogout) {
+                                // remove token
+                                Auth.remove();
+                                //Flash.setSuccess('You have successfully logged out.');
+                                //this.$router.push('/login')
+                                this.$f7router.navigate('/login/')
+                            }
+                        });
+                    }
+                })
+        }*/
+        logout() {
+            this.$swal("Are you sure you want to do this?", {
+                buttons: ["Oh no!", true],
+            }).then((willLogout) => {
+                if(willLogout) {
+                    // remove token
+                    Auth.remove();
+                    //Flash.setSuccess('You have successfully logged out.');
+                    //this.$router.push('/login')
+                    this.$f7router.navigate('/login/')
+                }
+            });
+        }
+    }
 }
 </script>

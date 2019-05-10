@@ -1,7 +1,7 @@
 <template>
   <f7-page>
     <f7-navbar title="About" back-link="Back"></f7-navbar>
-    <f7-block-title>About My App</f7-block-title>
+    <f7-block-title>About OnePOS App</f7-block-title>
     <f7-block strong>
       <p>Here is About page!</p>
       <p>You can go <f7-link back>back</f7-link>.</p>

@@ -5,8 +5,17 @@
       <p>Sorry</p>
       <p>Requested content not found.</p>
     </f7-block>
+
+    <bottom-nav></bottom-nav>
+
   </f7-page>
 </template>
+
 <script>
-  export default {};
+  import bottomNav from '../components/BottomNav'
+  export default {
+      components: {
+          bottomNav
+      }
+  };
 </script>
